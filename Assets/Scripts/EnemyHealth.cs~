@@ -1,0 +1,36 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class EnemyHealth : MonoBehaviour
+{
+    [SerializeField] int health = 10;
+    
+    // Start is called before the first frame update
+    void Start()
+    {
+        // will probably remain empty
+    }
+    
+    // Update is called once per frame
+    void Update()
+    {
+            
+    }
+
+    public void decreaseHealth(int damage)
+    {
+        if (health > 0)
+        {
+            health -= damage;
+            //print("health decremented, now is: " + health);
+        }
+
+        else if (health <= 0)
+        {
+            //dying visual FX
+            print("Enemy Dead");
+            Destroy(gameObject);
+        }
+    }
+}

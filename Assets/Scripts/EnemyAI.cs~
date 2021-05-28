@@ -1,0 +1,114 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.AI;
+
+public class EnemyAI : MonoBehaviour
+{
+    [SerializeField] Transform target;
+    [SerializeField] float chaseRange = 14.0f;
+    NavMeshAgent navMeshAgent;
+    float distanceToTarget = Mathf.Infinity;
+    bool isProvoked = false;
+    //bool startTimeCheck = false;
+    //float startTime;
+    //float timeLimit = 5f;
+    [SerializeField] float turnSpeed = 5f;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        navMeshAgent = GetComponent<NavMeshAgent>();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        distanceToTarget = Vector3.Distance(target.position, transform.position);
+        LookAtTarget();
+        if (isProvoked)
+        {
+            EngageTarget();
+        }
+
+        else if(distanceToTarget <= chaseRange)
+        {
+            isProvoked = true;
+            //startTimeCheck = true;
+        }
+    }
+
+    public void OnDamageTaken()
+    {
+	isProvoked = True;
+    }
+
+
+    void EngageTarget()
+    {
+        //RecordTimeAtProvoke();
+        LookAtTarget();
+
+        if (distanceToTarget > navMeshAgent.stoppingDistance) //&& (Time.time - startTime) < timeLimit)
+        {
+            ChaseTarget();
+        }
+
+        else if (distanceToTarget <= navMeshAgent.stoppingDistance) //&& (Time.time - startTime) < timeLimit)
+        {
+            AttackTarget();
+        }
+
+        //else
+        //{
+        //    //AttackToMove();
+        //    //isProvoked = false;
+        //    startTimeCheck = false;
+        //}
+    }
+
+    //void RecordTimeAtProvoke()
+    //{
+    //    if (startTimeCheck)
+    //    {
+    //        startTime = Time.time;
+    //        startTimeCheck = false;
+    //    }
+    //}
+
+    private void ChaseTarget()
+    {
+        navMeshAgent.SetDestination(target.position);
+        //print(distanceToTarget);     // stupid
+
+        GetComponent<Animator>().SetBool("Attack", false);
+        GetComponent<Animator>().SetTrigger("Move");
+    }
+
+    private void AttackTarget()
+    {
+        //Animator attackAnimator = GetComponent<Animator>();
+        Animator weaponBoop = GetComponentInChildren<Animator>();
+        
+        weaponBoop.SetBool("Attack", true);
+        //print("ATTACK!");
+    }
+
+    private void LookAtTarget()
+    {
+        Vector3 direction = (target.position - transform.position).normalized;
+        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * turnSpeed);
+
+        // TODO: this ain't workin'         SOLVED!
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = new Color (1, 0.3f, 0.3f, 0.6f);
+        Gizmos.DrawWireSphere(transform.position, chaseRange);
+    }
+}
+
+// TODO: Why the fuck does the enemy stops chasing after a while?	// SOLVED! It was a navmesh problem, new terrain was not baked.

@@ -1,0 +1,59 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Weapon : MonoBehaviour
+{
+    [SerializeField] Camera FPCamera;
+    [SerializeField] float range = 100f;
+    [SerializeField] int damageDone = 2;
+    [SerializeField] ParticleSystem muzzleFlash;
+    [SerializeField] GameObject hitVFX;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        // will probably remain empty
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (Input.GetButtonDown("Fire1"))
+        {
+            Shoot();
+        }
+    }
+
+    void Shoot()
+    {
+        ProcessRaycast();
+        PlayMuzzuleFlash();
+    }
+
+    void PlayMuzzuleFlash()
+    {
+        muzzleFlash.Play();
+    }
+
+    private void ProcessRaycast()
+    {
+        RaycastHit hit;
+        bool gotHit = Physics.Raycast(origin: FPCamera.transform.position, direction: FPCamera.transform.forward, out hit, maxDistance: range);
+
+        if (gotHit)
+        {
+            CreateHitImpact(hit);
+            EnemyHealth targetHealth = hit.transform.GetComponent<EnemyHealth>();
+            if (targetHealth == null) return;
+            targetHealth.decreaseHealth(damageDone);
+        }
+    }
+
+    private void CreateHitImpact(RaycastHit hit)
+    {
+        GameObject tmpHitVFX = Instantiate(hitVFX, hit.point, Quaternion.LookRotation(hit.normal));
+        Destroy(tmpHitVFX, 0.5f);
+    }
+}
